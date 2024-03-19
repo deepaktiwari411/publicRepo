@@ -1,0 +1,29 @@
+import os
+import re
+
+def extract_sql_from_scripts(folder_path):
+    # Ensure the folder path exists
+    if not os.path.isdir(folder_path):
+        print("Folder path does not exist.")
+        return
+    
+    # Loop through files in the folder
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".py"):
+            script_path = os.path.join(folder_path, filename)
+            with open(script_path, "r") as file:
+                script_content = file.read()
+                
+                # Extract SQL queries using regex
+                sql_queries = re.findall(r"(?i)spark\.sql\((.*?)\)", script_content)
+                
+                # Write SQL queries to new files
+                for i, sql_query in enumerate(sql_queries):
+                    sql_filename = f"ExtractSql_{filename[:-3]}_{i+1}.sql"
+                    sql_filepath = os.path.join(folder_path, sql_filename)
+                    with open(sql_filepath, "w") as sql_file:
+                        sql_file.write(sql_query.strip())
+
+# Example usage
+folder_path = "/path/to/your/scripts/folder"
+extract_sql_from_scripts(folder_path)
