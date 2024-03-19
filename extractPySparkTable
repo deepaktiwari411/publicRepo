@@ -1,0 +1,32 @@
+import os
+import re
+
+def extract_tables_from_scripts(folder_path):
+    # Ensure the folder path exists
+    if not os.path.isdir(folder_path):
+        print("Folder path does not exist.")
+        return
+    
+    # Loop through files in the folder
+    for filename in os.listdir(folder_path):
+        if filename.endswith(".py"):
+            script_path = os.path.join(folder_path, filename)
+            with open(script_path, "r") as file:
+                script_content = file.read()
+                
+                # Extract input and output table names using regex
+                input_tables = re.findall(r"FROM\s+([^\s,]+)", script_content, re.IGNORECASE)
+                output_tables = re.findall(r"INTO\s+([^\s,]+)", script_content, re.IGNORECASE)
+                
+                # Write table names to output file
+                output_filename = f"ExtractTable_{filename}"
+                output_filepath = os.path.join(folder_path, output_filename)
+                with open(output_filepath, "w") as output_file:
+                    output_file.write("Input Tables:\n")
+                    output_file.write("\n".join(input_tables))
+                    output_file.write("\n\nOutput Tables:\n")
+                    output_file.write("\n".join(output_tables))
+
+# Example usage
+folder_path = "/path/to/your/scripts/folder"
+extract_tables_from_scripts(folder_path)
