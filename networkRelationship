@@ -1,0 +1,63 @@
+import pandas as pd
+import networkx as nx
+from networkx.drawing.nx_agraph import graphviz_layout
+import matplotlib.pyplot as plt
+
+# Read Excel sheet into a DataFrame
+df = pd.read_excel('your_excel_file.xlsx')
+
+# Create a directed graph
+G = nx.DiGraph()
+
+# Add nodes (programs)
+for program in df['Program Name']:
+    G.add_node(program)
+
+# Add edges (connections between programs)
+for _, row in df.iterrows():
+    G.add_edge(row['Input Table'], row['Output Table'], label=row['Program Name'])
+
+# Draw the graph
+pos = graphviz_layout(G, prog='dot')
+nx.draw(G, pos, with_labels=True, node_size=3000, node_color='lightblue', font_size=10, font_weight='bold', arrowsize=20)
+edge_labels = nx.get_edge_attributes(G, 'label')
+nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+
+# Show the plot
+plt.title('Workflow Relationship Diagram')
+plt.tight_layout()
+plt.show()
+
+
+####### or
+
+pip install pandas networkx matplotlib
+
+
+import pandas as pd
+import networkx as nx
+import matplotlib.pyplot as plt
+
+# Read Excel sheet into a DataFrame
+df = pd.read_excel('your_excel_file.xlsx')
+
+# Create a directed graph
+G = nx.DiGraph()
+
+# Add nodes (programs)
+for _, row in df.iterrows():
+    G.add_node(row['Main Program'])
+
+# Add edges (connections between programs)
+for _, row in df.iterrows():
+    G.add_edge(row['Main Program'], row['Sub Program'])
+
+# Draw the graph
+pos = nx.spring_layout(G)
+nx.draw(G, pos, with_labels=True, node_size=3000, node_color='lightblue', font_size=10, font_weight='bold', arrowsize=20)
+
+# Show the plot
+plt.title('Workflow Relationship Diagram')
+plt.tight_layout()
+plt.show()
+
