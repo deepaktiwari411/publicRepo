@@ -1,0 +1,32 @@
+import pandas as pd
+import networkx as nx
+import plotly.graph_objects as go
+
+# Load the Excel sheet
+df = pd.read_excel('your_excel_file.xlsx')
+
+# Create a directed graph
+G = nx.DiGraph()
+
+# Add edges between programs
+for index, row in df.iterrows():
+    G.add_edge(row['outputter program'], row['inputter program namme'], label=row['table name'])
+
+# Create Plotly figure
+fig = go.Figure()
+
+# Add nodes
+for node in G.nodes:
+    fig.add_trace(go.Scatter(x=[], y=[], mode='markers+text', marker=dict(size=10), text=node, name=node))
+
+# Add edges
+for edge in G.edges(data=True):
+    x0, y0 = G.nodes[edge[0]]['pos']
+    x1, y1 = G.nodes[edge[1]]['pos']
+    fig.add_trace(go.Scatter(x=[x0, x1, None], y=[y0, y1, None], mode='lines', line=dict(color='blue'), hoverinfo='none'))
+
+# Update layout
+fig.update_layout(title='Interactive Graph', showlegend=False)
+
+# Show the figure
+fig.show()
