@@ -1,0 +1,74 @@
+import re
+import pandas as pd
+
+def parse_autosys_jil(jil_text):
+    # Define regex patterns for extracting job attributes
+    pattern_job_start = re.compile(r'^\s*insert_job:\s+([\w\-]+)')
+    pattern_attribute = re.compile(r'^\s*(\w+):\s+(.+)')
+    pattern_job_end = re.compile(r'^\s*')
+
+    # Initialize lists to store job attributes
+    jobs = []
+
+    # Initialize variables to store current job attributes
+    current_job = {}
+    current_attribute = None
+
+    # Iterate through each line in the JIL text
+    for line in jil_text.splitlines():
+        # Check if a new job is starting
+        match_job_start = pattern_job_start.match(line)
+        if match_job_start:
+            # Save the current job if it's not the first one
+            if current_job:
+                jobs.append(current_job)
+            # Start parsing a new job
+            current_job = {'Job Name': match_job_start.group(1)}
+            continue
+
+        # Check if it's the end of job definition
+        match_job_end = pattern_job_end.match(line)
+        if match_job_end:
+            # Save the current job
+            if current_job:
+                jobs.append(current_job)
+                current_job = {}
+            continue
+
+        # Check for attribute lines
+        match_attribute = pattern_attribute.match(line)
+        if match_attribute:
+            # Extract attribute name and value
+            attribute_name = match_attribute.group(1)
+            attribute_value = match_attribute.group(2)
+            # Store attribute in current job
+            current_job[attribute_name] = attribute_value
+            continue
+
+    return jobs
+
+# Sample Autosys JIL text
+autosys_jil = """
+insert_job: job1   job_type: c
+box_name: box1
+date_conditions: 1
+days_of_week: all
+start_times: "00:00"
+condition: s(job2) or s(job3)
+command: echo "Hello World!"
+
+insert_job: job2   job_type: c
+command: python script.py
+
+insert_job: job3   job_type: c
+command: python script2.py
+"""
+
+# Parse the Autosys JIL
+jobs = parse_autosys_jil(autosys_jil)
+
+# Create a DataFrame
+df = pd.DataFrame(jobs)
+
+# Write DataFrame to Excel
+df.to_excel('autosys_jobs.xlsx', index=False)
