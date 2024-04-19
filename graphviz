@@ -1,0 +1,22 @@
+import pandas as pd
+from graphviz import Digraph
+
+# Sample DataFrame with columns input_node, edge, and output_node
+data = {
+    'input_node': ['A', 'B', 'C'],
+    'edge': ['X', 'Y', 'Z'],
+    'output_node': ['D', 'E', 'F']
+}
+df = pd.DataFrame(data)
+
+# Create a new Graphviz Digraph
+dot = Digraph()
+
+# Add nodes and edges from the DataFrame
+for index, row in df.iterrows():
+    dot.node(row['input_node'], shape='oval', color='lightblue2', style='filled')
+    dot.node(row['output_node'], shape='oval', color='lightblue2', style='filled')
+    dot.edge(row['input_node'], row['output_node'], label=row['edge'])
+
+# Render and display the graph
+dot.render('graph', format='png', cleanup=True)
