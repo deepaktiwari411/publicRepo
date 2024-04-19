@@ -1,3 +1,75 @@
+Sure! Here's a Python code that reads Autosys JIL information from a text file, parses the jobs, and writes the relevant attributes to an Excel file:
+
+```python
+import re
+import pandas as pd
+
+def parse_autosys_jil(jil_text):
+    # Define regex patterns for extracting job attributes
+    pattern_job_start = re.compile(r'^\s*insert_job:\s+([\w\-]+)')
+    pattern_attribute = re.compile(r'^\s*(\w+):\s+(.+)')
+    pattern_job_end = re.compile(r'^\s*')
+
+    # Initialize lists to store job attributes
+    jobs = []
+
+    # Initialize variables to store current job attributes
+    current_job = {}
+    current_attribute = None
+
+    # Iterate through each line in the JIL text
+    for line in jil_text.splitlines():
+        # Check if a new job is starting
+        match_job_start = pattern_job_start.match(line)
+        if match_job_start:
+            # Save the current job if it's not the first one
+            if current_job:
+                jobs.append(current_job)
+            # Start parsing a new job
+            current_job = {'Job Name': match_job_start.group(1)}
+            continue
+
+        # Check if it's the end of job definition
+        match_job_end = pattern_job_end.match(line)
+        if match_job_end:
+            # Save the current job
+            if current_job:
+                jobs.append(current_job)
+                current_job = {}
+            continue
+
+        # Check for attribute lines
+        match_attribute = pattern_attribute.match(line)
+        if match_attribute:
+            # Extract attribute name and value
+            attribute_name = match_attribute.group(1)
+            attribute_value = match_attribute.group(2)
+            # Store attribute in current job
+            current_job[attribute_name] = attribute_value
+            continue
+
+    return jobs
+
+# Read Autosys JIL from a text file
+file_path = 'autosys_jil.txt'
+with open(file_path, 'r') as file:
+    autosys_jil = file.read()
+
+# Parse the Autosys JIL
+jobs = parse_autosys_jil(autosys_jil)
+
+# Create a DataFrame
+df = pd.DataFrame(jobs)
+
+# Write DataFrame to Excel
+df.to_excel('autosys_jobs.xlsx', index=False)
+```
+
+This code reads the Autosys JIL from a text file specified by `file_path`, parses the job information using the `parse_autosys_jil()` function, creates a Pandas DataFrame with the extracted attributes, and writes it to an Excel file named 'autosys_jobs.xlsx'. Make sure to replace `'autosys_jil.txt'` with the path to your Autosys JIL text file.
+
+
+
+
 import re
 import pandas as pd
 
