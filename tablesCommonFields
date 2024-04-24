@@ -1,0 +1,23 @@
+import pandas as pd
+
+# Step 1: Read the Excel sheet into a pandas DataFrame
+excel_file = "your_excel_file.xlsx"
+df = pd.read_excel(excel_file)
+
+# Step 2: Group the data by table names
+table_groups = df.groupby('table_name')
+
+# Step 3: Analyze the field names within each group
+output_data = []
+
+for table_name1, group_data1 in table_groups:
+    for table_name2, group_data2 in table_groups:
+        if table_name1 != table_name2:  # Skip comparing the table with itself
+            common_fields = set(group_data1['field_name']).intersection(set(group_data2['field_name']))
+            num_common_fields = len(common_fields)
+            if num_common_fields > 0:
+                output_data.append([table_name1, table_name2, num_common_fields, " ".join(common_fields)])
+
+# Step 4: Output the results
+output_df = pd.DataFrame(output_data, columns=['Table 1', 'Table 2', 'Number of Common Fields', 'Common Fields'])
+print(output_df)
