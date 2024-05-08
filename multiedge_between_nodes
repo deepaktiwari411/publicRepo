@@ -1,0 +1,13 @@
+import networkx as nx
+
+# Create a directed graph
+G = nx.DiGraph()
+
+# Add multiple directed edges with labels between nodes 1 and 2
+G.add_edge(1, 2, label='edge1')
+G.add_edge(1, 2, label='edge2')
+G.add_edge(1, 2, label='edge3')
+
+# To access the labels of the directed edges between nodes 1 and 2
+labels = [(n1, n2, d['label']) for n1, n2, d in G.edges(data=True) if n1 == 1 and n2 == 2]
+print(labels)
