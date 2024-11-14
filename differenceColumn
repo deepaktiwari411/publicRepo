@@ -1,0 +1,76 @@
+import pandas as pd
+import difflib
+
+def load_data(source_csv, target_csv, mapping_excel):
+    source_df = pd.read_csv(source_csv)
+    target_df = pd.read_csv(target_csv)
+    mapping_df = pd.read_excel(mapping_excel)
+    return source_df, target_df, mapping_df
+
+def filter_columns(df, exclude_columns):
+    return df[~df['field_name'].str.lower().isin(exclude_columns)]
+
+def find_probable_match(field, field_set):
+    # Use difflib to find the closest match if available
+    probable_matches = difflib.get_close_matches(field, field_set, n=1, cutoff=0.6)
+    return probable_matches[0] if probable_matches else None
+
+def compare_schemas(source_df, target_df, mapping_df, exclude_columns):
+    # List to collect rows for output CSV
+    output_rows = []
+
+    for _, mapping_row in mapping_df.iterrows():
+        source_table = mapping_row['source_table']
+        target_table = mapping_row['target_table']
+        
+        # Get fields for each table
+        source_fields = source_df[source_df['table_name'] == source_table]
+        target_fields = target_df[target_df['table_name'] == target_table]
+        
+        # Filter out excluded columns
+        source_fields = filter_columns(source_fields, exclude_columns)
+        target_fields = filter_columns(target_fields, exclude_columns)
+
+        # Convert field names to lowercase sets for comparison
+        source_field_names = set(source_fields['field_name'].str.lower())
+        target_field_names = set(target_fields['field_name'].str.lower())
+        
+        # Fields missing in target
+        for field in source_field_names - target_field_names:
+            probable_match = find_probable_match(field, target_field_names)
+            output_rows.append({
+                "table_name": source_table,
+                "field_name": field,
+                "missing_at": "target",
+                "probable_match_field_name": probable_match
+            })
+        
+        # Fields missing in source
+        for field in target_field_names - source_field_names:
+            probable_match = find_probable_match(field, source_field_names)
+            output_rows.append({
+                "table_name": target_table,
+                "field_name": field,
+                "missing_at": "source",
+                "probable_match_field_name": probable_match
+            })
+    
+    return output_rows
+
+def main(source_csv, target_csv, mapping_excel, output_csv, exclude_columns):
+    source_df, target_df, mapping_df = load_data(source_csv, target_csv, mapping_excel)
+    differences = compare_schemas(source_df, target_df, mapping_df, exclude_columns)
+    
+    # Convert differences to DataFrame and save as CSV
+    differences_df = pd.DataFrame(differences)
+    differences_df.to_csv(output_csv, index=False)
+    print(f"Comparison output saved to {output_csv}")
+
+# Usage
+source_csv = 'source_schema.csv'
+target_csv = 'target_schema.csv'
+mapping_excel = 'table_mapping.xlsx'
+output_csv = 'schema_differences.csv'
+exclude_columns = {'audit', 'create_date'}
+
+main(source_csv, target_csv, mapping_excel, output_csv, exclude_columns)
